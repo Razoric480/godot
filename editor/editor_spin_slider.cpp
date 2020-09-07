@@ -31,6 +31,7 @@
 #include "editor_spin_slider.h"
 #include "core/math/expression.h"
 #include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "editor_node.h"
 #include "editor_scale.h"
 
@@ -179,6 +180,39 @@ void EditorSpinSlider::_grabber_gui_input(const Ref<InputEvent> &p_event) {
 		float grabbing_ofs = (grabber->get_transform().xform(mm->get_position()).x - grabbing_from) / float(grabber_range) / scale_x;
 		set_as_ratio(grabbing_ratio + grabbing_ofs);
 		update();
+	}
+}
+
+void EditorSpinSlider::_value_input_gui_input(const Ref<InputEvent> &p_event) {
+	Ref<InputEventKey> k = p_event;
+	if (k.is_valid() && k->is_pressed()) {
+		uint32_t code = k->get_scancode();
+		double step = get_step();
+
+#ifdef APPLE_STYLE_KEYS
+		if (k->get_command()) {
+#else
+		if (k->get_control()) {
+#endif
+			step = 100.0;
+		} else if (k->get_shift()) {
+			step = 10.0;
+		} else if (k->get_alt()) {
+			step = 0.1;
+		}
+
+		switch (code) {
+			case KEY_UP:
+				_evaluate_input_text();
+				set_value(get_value() + step);
+				value_input->set_text(get_text_value());
+				break;
+			case KEY_DOWN:
+				_evaluate_input_text();
+				set_value(get_value() - step);
+				value_input->set_text(get_text_value());
+				break;
+		}
 	}
 }
 
@@ -479,6 +513,7 @@ void EditorSpinSlider::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_value_input_closed"), &EditorSpinSlider::_value_input_closed);
 	ClassDB::bind_method(D_METHOD("_value_input_entered"), &EditorSpinSlider::_value_input_entered);
 	ClassDB::bind_method(D_METHOD("_value_focus_exited"), &EditorSpinSlider::_value_focus_exited);
+	ClassDB::bind_method(D_METHOD("_value_input_gui_input"), &EditorSpinSlider::_value_input_gui_input);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "label"), "set_label", "get_label");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "read_only"), "set_read_only", "is_read_only");
@@ -514,6 +549,7 @@ EditorSpinSlider::EditorSpinSlider() {
 	value_input->connect("modal_closed", this, "_value_input_closed");
 	value_input->connect("text_entered", this, "_value_input_entered");
 	value_input->connect("focus_exited", this, "_value_focus_exited");
+	value_input->connect("gui_input", this, "_value_input_gui_input");
 	value_input_just_closed = false;
 	hide_slider = false;
 	read_only = false;
