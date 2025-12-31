@@ -1,5 +1,8 @@
 name: Package custom godot
 
+on:
+  workflow_dispatch:
+
 permissions:
   contents: write
 
