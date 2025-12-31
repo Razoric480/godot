@@ -39,6 +39,9 @@ void GDScriptParserWrap::_bind_methods() {
 }
 
 Error GDScriptParserWrap::parse_script(String p_content) {
+	if(parser != nullptr) {
+		memdelete(parser);
+	}
 	parser = memnew(GDScriptParser);
 	return parser->parse(p_content);
 }

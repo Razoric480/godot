@@ -1,36 +1,48 @@
-# We need a debug build to access GDScript parse errors. Tools is for compiling the editor.
-# Disabling 3D is only available in builds that exclude the editor (tools=no),
-# it can be used for the final runtime/templates as Learn GDScript only uses 2D.
-# Consider trying with LTO
-scons target=debug \
-	  tools=yes \
-	  disable_3d=no \
-	  module_arkit_enabled=no \
-	  module_assimp_enabled=no \
-	  module_bmp_enabled=no \
-	  module_bullet_enabled=no \
-	  module_camera_enabled=no \
-	  module_csg_enabled=no \
-	  module_dds_enabled=no \
-	  module_enet_enabled=no \
-	  module_etc_enabled=no \
-	  module_gdnative_enabled=no \
-	  module_gridmap_enabled=no \
-	  module_hdr_enabled=no \
-	  module_mbedtls_enabled=no \
-	  module_mobile_vr_enabled=no \
-	  module_opensimplex_enabled=no \
-	  module_opus_enabled=no \
-	  module_pvr_enabled=no \
-	  module_recast_enabled=no \
-	  module_squish_enabled=no \
-	  module_tga_enabled=no \
-	  module_theora_enabled=no \
-	  module_tinyexr_enabled=no \
-	  module_upnp_enabled=no \
-	  module_vhacd_enabled=no \
-	  module_vorbis_enabled=no \
-	  module_webm_enabled=no \
-	  module_webrtc_enabled=no \
-	  module_websocket_enabled=no \
-	  module_xatlas_unwrap_enabled=no \
+#!/bin/bash
+
+echo "Compiling linux editor"
+
+scons p=x11 target=release_debug lto=full tools=yes
+strip bin/godot.x11.opt.tools.64
+chmod +x bin/godot.x11.opt.tools.64
+
+echo "Compiling headless"
+
+scons p=server target=release_debug lto=full tools=yes
+strip bin/godot_server.x11.opt.tools.64
+chmod +x bin/godot_server.x11.opt.tools.64
+
+echo "Compiling linux release template"
+
+scons p=x11 target=release optimize=speed disable_3d=true lto=full tools=no
+strip bin/godot.x11.opt.64
+chmod +x bin/godot.x11.opt.64
+
+echo "Compiling windows release template"
+
+scons p=windows target=release optimize=speed disable_3d=true lto=full tools=no bits=64
+strip bin/godot.windows.opt.64.exe
+
+echo "Compiling ARM64 OSX template"
+
+scons p=osx osxcross_sdk=darwin24.4 target=release optimize=speed disable_3d=true tools=no arch=arm64
+x86_64-apple-darwin24.4-strip -u -r bin/godot.osx.opt.arm64
+
+echo "Compiling x86_64 OSX template"
+
+scons p=osx osxcross_sdk=darwin24.4 target=release optimize=speed disable_3d=true tools=no arch=x86_64
+x86_64-apple-darwin24.4-strip -u -r bin/godot.osx.opt.x86_64
+
+echo "Combining into universal OSX template"
+
+lipo -create bin/godot.osx.opt.arm64 bin/godot.osx.opt.x86_64 -output bin/godot.osx.opt.universal
+rm -f bin/godot.osx.opt.arm64
+rm -f bin/godot.osx.opt.x86_64
+
+echo "Packing result"
+
+godot_version=$(python -c "import pathlib; ns={}; exec(pathlib.Path('version.py').read_text(), ns); print(f\"{ns['major']}.{ns['minor']}.{ns['patch']}\")")
+
+zip -j -r bin/godot-learn.${godot_version}.zip bin
+
+echo "Done compiling. Archive is bin/godot-learn.${godot_version}.zip"
