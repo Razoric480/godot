@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm -rf ./bin
+
 echo "Compiling linux editor"
 
 scons p=x11 target=release_debug lto=full tools=yes
@@ -36,13 +38,26 @@ x86_64-apple-darwin24.4-strip -u -r bin/godot.osx.opt.x86_64
 echo "Combining into universal OSX template"
 
 lipo -create bin/godot.osx.opt.arm64 bin/godot.osx.opt.x86_64 -output bin/godot.osx.opt.universal
-rm -f bin/godot.osx.opt.arm64
-rm -f bin/godot.osx.opt.x86_64
+
+echo "Building universal bundle"
+
+cp -r misc/dist/osx_template.app bin/osx_template.app
+mkdir -p bin/osx_template.app/Contents/MacOS
+cp bin/godot.osx.opt.universal bin/osx_template.app/Contents/MacOS/godot_osx_release.64
+cp bin/godot.osx.opt.universal bin/osx_template.app/Contents/MacOS/godot_osx_debug.64
+chmod +x osx_template.app/Contents/MacOS/godot_osx*
+zip -q -9 -r bin/osx_template.zip bin/osx_template.app
+
+echo "Building web export"
+
+scons p=javascript target=release optimize=speed disable_3d=true tools=no
 
 echo "Packing result"
 
 godot_version=$(python -c "import pathlib; ns={}; exec(pathlib.Path('version.py').read_text(), ns); print(f\"{ns['major']}.{ns['minor']}.{ns['patch']}\")")
 
-zip -j -r bin/godot-learn.${godot_version}.zip bin
+zip -j /output/godot-learn.${godot_version}.templates.zip bin/osx_template.zip bin/godot.windows.opt.64.exe bin/godot.x11.opt.64 bin/godot.javascript.opt.zip
+zip -j /output/godot-learn.${godot_version}.headless.zip bin/godot_server.x11.opt.tools.64
+zip -j /output/godot-learn.${godot_version}.editor.zip bin/godot.x11.opt.tools.64
 
-echo "Done compiling. Archive is bin/godot-learn.${godot_version}.zip"
+echo "Done compiling. Archived into /output"
