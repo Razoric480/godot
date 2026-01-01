@@ -116,9 +116,9 @@ def configure(env):
     else:  # osxcross build
         root = os.environ.get("OSXCROSS_ROOT", 0)
         if env["arch"] == "arm64":
-            basecmd = root + "/bin/arm64-apple-" + env["osxcross_sdk"] + "-"
+            basecmd = root + "/target/bin/arm64-apple-" + env["osxcross_sdk"] + "-"
         else:
-            basecmd = root + "/bin/x86_64-apple-" + env["osxcross_sdk"] + "-"
+            basecmd = root + "/target/bin/x86_64-apple-" + env["osxcross_sdk"] + "-"
 
         ccache_path = os.environ.get("CCACHE")
         if ccache_path is None:
