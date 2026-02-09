@@ -34,11 +34,13 @@
 #include "gdscript_cache.h"
 #include "gdscript_parser.h"
 #include "gdscript_tokenizer_buffer.h"
+#include "gdscript_error_checker.h"
 #include "gdscript_utility_functions.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/gdscript_highlighter.h"
 #include "editor/gdscript_translation_parser_plugin.h"
+#include "editor/script/script_editor_plugin.h"
 
 #ifndef GDSCRIPT_NO_LSP
 #include "language_server/gdscript_language_server.h"
@@ -152,6 +154,8 @@ void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 		gdscript_cache = memnew(GDScriptCache);
 
 		GDScriptUtilityFunctions::register_functions();
+
+		GDREGISTER_CLASS(GDScriptErrorChecker);
 	}
 
 #ifdef TOOLS_ENABLED
