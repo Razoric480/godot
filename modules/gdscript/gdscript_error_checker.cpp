@@ -31,6 +31,7 @@
 #include "gdscript_error_checker.h"
 
 #include "gdscript_parser.h"
+#include "gdscript_analyzer.h"
 
 void GDScriptErrorChecker::_bind_methods() {
 	ClassDB::bind_method("has_errors", &GDScriptErrorChecker::has_errors);
@@ -75,7 +76,13 @@ Error GDScriptErrorChecker::set_source(const String &p_source) {
 		parser = nullptr;
 	}
 	parser = memnew(GDScriptParser);
-	return parser->parse(p_source, "", false);
+	Error err = parser->parse(p_source, "", false);
+	if(err) {
+		return err;
+	}
+	GDScriptAnalyzer analyzer(parser);
+	err = analyzer.analyze();
+	return err;
 }
 
 GDScriptErrorChecker::GDScriptErrorChecker() = default;
