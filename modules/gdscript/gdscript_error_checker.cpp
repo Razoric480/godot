@@ -44,53 +44,70 @@ void GDScriptErrorChecker::_bind_methods() {
 }
 
 bool GDScriptErrorChecker::has_errors() const {
-	ERR_FAIL_COND_V_MSG(parser == nullptr, false, "No source code provided.");
-	return !parser->get_errors().is_empty() || (compiler != nullptr && !compiler->get_error().is_empty());
+	ERR_FAIL_COND_V_MSG(parser == nullptr || compiler == nullptr, false, "No source code provided.");
+	return !parser->get_errors().is_empty() || !compiler->get_error().is_empty();
 }
 
 int GDScriptErrorChecker::get_error_count() const {
-	ERR_FAIL_COND_V_MSG(parser == nullptr, false, "No source code provided.");
-	return parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0);
+	ERR_FAIL_COND_V_MSG(parser == nullptr || compiler == nullptr, -1, "No source code provided.");
+	if (!parser->get_errors().is_empty()) {
+		return parser->get_errors().size();
+	}
+	if (!compiler->get_error().is_empty()) {
+		return 1;
+	}
+	return 0;
 }
 
 String GDScriptErrorChecker::get_error(const int p_idx) const {
-	ERR_FAIL_COND_V_MSG(parser == nullptr, String(), "No source code provided.");
-	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0), String());
-	if (p_idx == parser->get_errors().size()) {
+	ERR_FAIL_COND_V_MSG(parser == nullptr || compiler == nullptr, String(), "No source code provided.");
+	if (!parser->get_errors().is_empty()) {
+		ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size(), String());
+		return parser->get_errors().get(p_idx).message;
+	}
+	if (!compiler->get_error().is_empty()) {
+		ERR_FAIL_INDEX_V(p_idx, 1, String());
 		return compiler->get_error();
 	}
-	return parser->get_errors().get(p_idx).message;
+	return String();
 }
 
 int GDScriptErrorChecker::get_error_line(const int p_idx) const {
-	ERR_FAIL_COND_V_MSG(parser == nullptr, -1, "No source code provided.");
-	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0), -1);
-	if (p_idx == parser->get_errors().size()) {
+	ERR_FAIL_COND_V_MSG(parser == nullptr || compiler == nullptr, -1, "No source code provided.");
+	if (!parser->get_errors().is_empty()) {
+		ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size(), -1);
+		return parser->get_errors().get(p_idx).line;
+	}
+	if (!compiler->get_error().is_empty()) {
+		ERR_FAIL_INDEX_V(p_idx, 1, -1);
 		return compiler->get_error_line();
 	}
-	return parser->get_errors().get(p_idx).line;
+	return -1;
 }
 
 int GDScriptErrorChecker::get_error_column(const int p_idx) const {
-	ERR_FAIL_COND_V_MSG(parser == nullptr, -1, "No source code provided.");
-	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0), -1);
-	if (p_idx == parser->get_errors().size()) {
+	ERR_FAIL_COND_V_MSG(parser == nullptr || compiler == nullptr, -1, "No source code provided.");
+	if (!parser->get_errors().is_empty()) {
+		ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size(), -1);
+		return parser->get_errors().get(p_idx).column;
+	}
+	if (!compiler->get_error().is_empty()) {
+		ERR_FAIL_INDEX_V(p_idx, 1, -1);
 		return 0;
 	}
-	return parser->get_errors().get(p_idx).column;
+	return -1;
 }
 
 Error GDScriptErrorChecker::set_source(const String &p_source) {
 	if (parser != nullptr) {
 		memdelete(parser);
-		parser = nullptr;
+		parser = memnew(GDScriptParser);
 	}
 	if (compiler != nullptr) {
 		memdelete(compiler);
-		compiler = nullptr;
+		compiler = memnew(GDScriptCompiler);
 	}
 
-	parser = memnew(GDScriptParser);
 	Error err = parser->parse(p_source, "", false);
 	if (err) {
 		return err;
@@ -104,7 +121,6 @@ Error GDScriptErrorChecker::set_source(const String &p_source) {
 	Ref<GDScript> main_script = memnew(GDScript);
 	main_script->set_source_code(p_source);
 
-	compiler = memnew(GDScriptCompiler);
 	err = compiler->compile(parser, *main_script, false);
 	return err;
 }
