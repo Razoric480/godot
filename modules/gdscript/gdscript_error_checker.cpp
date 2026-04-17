@@ -33,8 +33,10 @@
 #include "gdscript_analyzer.h"
 #include "gdscript_compiler.h"
 #include "gdscript_parser.h"
+#include "gdscript_exposed_tree.h"
 
 void GDScriptErrorChecker::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_root_parse_node"), &GDScriptErrorChecker::get_root_parse_node);
 	ClassDB::bind_method("has_errors", &GDScriptErrorChecker::has_errors);
 	ClassDB::bind_method("get_error_count", &GDScriptErrorChecker::get_error_count);
 	ClassDB::bind_method(D_METHOD("set_source", "source_code"), &GDScriptErrorChecker::set_source);
@@ -123,6 +125,10 @@ Error GDScriptErrorChecker::set_source(const String &p_source) {
 
 	err = compiler->compile(parser, *main_script, false);
 	return err;
+}
+
+Ref<GDClassNode> GDScriptErrorChecker::get_root_parse_node() const {
+	return GDNode::build_from<GDClassNode>(parser->get_tree());
 }
 
 GDScriptErrorChecker::GDScriptErrorChecker() = default;
