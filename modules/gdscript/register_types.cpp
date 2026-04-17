@@ -36,6 +36,7 @@
 #include "gdscript_tokenizer_buffer.h"
 #include "gdscript_error_checker.h"
 #include "gdscript_utility_functions.h"
+#include "gdscript_exposed_tree.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/gdscript_highlighter.h"
@@ -156,6 +157,49 @@ void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 		GDScriptUtilityFunctions::register_functions();
 
 		GDREGISTER_CLASS(GDScriptErrorChecker);
+		GDREGISTER_CLASS(GDMember);
+		GDREGISTER_CLASS(GDNode);
+		GDREGISTER_CLASS(GDAnnotationNode);
+		GDREGISTER_CLASS(GDArrayNode);
+		GDREGISTER_CLASS(GDAssertNode);
+		GDREGISTER_CLASS(GDAssignableNode);
+		GDREGISTER_CLASS(GDAssignmentNode);
+		GDREGISTER_CLASS(GDAwaitNode);
+		GDREGISTER_CLASS(GDBinaryOpNode);
+		GDREGISTER_CLASS(GDBreakNode);
+		GDREGISTER_CLASS(GDBreakpointNode);
+		GDREGISTER_CLASS(GDCallNode);
+		GDREGISTER_CLASS(GDCastNode);
+		GDREGISTER_CLASS(GDClassNode);
+		GDREGISTER_CLASS(GDConstantNode);
+		GDREGISTER_CLASS(GDContinueNode);
+		GDREGISTER_CLASS(GDDictionaryNode);
+		GDREGISTER_CLASS(GDEnumNode);
+		GDREGISTER_CLASS(GDExpressionNode);
+		GDREGISTER_CLASS(GDForNode);
+		GDREGISTER_CLASS(GDFunctionNode);
+		GDREGISTER_CLASS(GDGetNodeNode);
+		GDREGISTER_CLASS(GDIdentifierNode);
+		GDREGISTER_CLASS(GDIfNode);
+		GDREGISTER_CLASS(GDLambdaNode);
+		GDREGISTER_CLASS(GDLiteralNode);
+		GDREGISTER_CLASS(GDMatchNode);
+		GDREGISTER_CLASS(GDMatchBranchNode);
+		GDREGISTER_CLASS(GDParameterNode);
+		GDREGISTER_CLASS(GDPassNode);
+		GDREGISTER_CLASS(GDPatternNode);
+		GDREGISTER_CLASS(GDPreloadNode);
+		GDREGISTER_CLASS(GDReturnNode);
+		GDREGISTER_CLASS(GDSelfNode);
+		GDREGISTER_CLASS(GDSignalNode);
+		GDREGISTER_CLASS(GDSubscriptNode);
+		GDREGISTER_CLASS(GDSuiteNode);
+		GDREGISTER_CLASS(GDTernaryOpNode);
+		GDREGISTER_CLASS(GDTypeNode);
+		GDREGISTER_CLASS(GDTypeTestNode);
+		GDREGISTER_CLASS(GDUnaryOpNode);
+		GDREGISTER_CLASS(GDVariableNode);
+		GDREGISTER_CLASS(GDWhileNode);
 	}
 
 #ifdef TOOLS_ENABLED

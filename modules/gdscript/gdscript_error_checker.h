@@ -34,6 +34,7 @@
 
 class GDScriptParser;
 class GDScriptCompiler;
+class GDClassNode;
 
 class GDScriptErrorChecker : public RefCounted {
 	GDCLASS(GDScriptErrorChecker, RefCounted);
@@ -52,6 +53,8 @@ public:
 	int get_error_column(int p_idx) const;
 
 	Error set_source(const String &p_source);
+
+	Ref<GDClassNode> get_root_parse_node() const;
 
 	GDScriptErrorChecker();
 	~GDScriptErrorChecker();
