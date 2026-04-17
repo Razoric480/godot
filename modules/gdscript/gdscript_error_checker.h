@@ -34,11 +34,13 @@
 #include "core/object/ref_counted.h"
 
 class GDScriptParser;
+class GDScriptCompiler;
 
 class GDScriptErrorChecker : public RefCounted {
 	GDCLASS(GDScriptErrorChecker, RefCounted);
 
 	GDScriptParser *parser = nullptr;
+	GDScriptCompiler *compiler = nullptr;
 
 protected:
 	static void _bind_methods();
