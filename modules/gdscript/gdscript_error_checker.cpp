@@ -32,6 +32,7 @@
 
 #include "gdscript_parser.h"
 #include "gdscript_analyzer.h"
+#include "gdscript_compiler.h"
 
 void GDScriptErrorChecker::_bind_methods() {
 	ClassDB::bind_method("has_errors", &GDScriptErrorChecker::has_errors);
@@ -44,29 +45,38 @@ void GDScriptErrorChecker::_bind_methods() {
 
 bool GDScriptErrorChecker::has_errors() const {
 	ERR_FAIL_COND_V_MSG(parser == nullptr, false, "No source code provided.");
-	return !parser->get_errors().is_empty();
+	return !parser->get_errors().is_empty() || (compiler != nullptr && !compiler->get_error().is_empty());
 }
 
 int GDScriptErrorChecker::get_error_count() const {
 	ERR_FAIL_COND_V_MSG(parser == nullptr, false, "No source code provided.");
-	return parser->get_errors().size();
+	return parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0);
 }
 
 String GDScriptErrorChecker::get_error(const int p_idx) const {
 	ERR_FAIL_COND_V_MSG(parser == nullptr, String(), "No source code provided.");
-	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size(), String());
+	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0), String());
+	if(p_idx == parser->get_errors().size()) {
+		return compiler->get_error();
+	}
 	return parser->get_errors().get(p_idx).message;
 }
 
 int GDScriptErrorChecker::get_error_line(const int p_idx) const {
 	ERR_FAIL_COND_V_MSG(parser == nullptr, -1, "No source code provided.");
-	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size(), -1);
+	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0), -1);
+	if(p_idx == parser->get_errors().size()) {
+		return compiler->get_error_line();
+	}
 	return parser->get_errors().get(p_idx).line;
 }
 
 int GDScriptErrorChecker::get_error_column(const int p_idx) const {
 	ERR_FAIL_COND_V_MSG(parser == nullptr, -1, "No source code provided.");
-	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size(), -1);
+	ERR_FAIL_INDEX_V(p_idx, parser->get_errors().size() + ((compiler != nullptr && !compiler->get_error().is_empty()) ? 1 : 0), -1);
+	if(p_idx == parser->get_errors().size()) {
+		return 0;
+	}
 	return parser->get_errors().get(p_idx).column;
 }
 
@@ -75,6 +85,11 @@ Error GDScriptErrorChecker::set_source(const String &p_source) {
 		memdelete(parser);
 		parser = nullptr;
 	}
+	if(compiler != nullptr) {
+		memdelete(compiler);
+		compiler = nullptr;
+	}
+
 	parser = memnew(GDScriptParser);
 	Error err = parser->parse(p_source, "", false);
 	if(err) {
@@ -82,6 +97,12 @@ Error GDScriptErrorChecker::set_source(const String &p_source) {
 	}
 	GDScriptAnalyzer analyzer(parser);
 	err = analyzer.analyze();
+
+	Ref<GDScript> main_script = memnew(GDScript);
+	main_script->set_source_code(p_source);
+
+	compiler = memnew(GDScriptCompiler);
+	err = compiler->compile(parser, *main_script, false);
 	return err;
 }
 
@@ -91,5 +112,9 @@ GDScriptErrorChecker::~GDScriptErrorChecker() {
 	if (parser != nullptr) {
 		memdelete(parser);
 		parser = nullptr;
+	}
+	if(compiler != nullptr) {
+		memdelete(compiler);
+		compiler = nullptr;
 	}
 }
