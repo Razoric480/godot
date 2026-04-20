@@ -101,12 +101,12 @@ int GDScriptErrorChecker::get_error_column(const int p_idx) const {
 Error GDScriptErrorChecker::set_source(const String &p_source) {
 	if (parser != nullptr) {
 		memdelete(parser);
-		parser = memnew(GDScriptParser);
 	}
+	parser = memnew(GDScriptParser);
 	if (compiler != nullptr) {
 		memdelete(compiler);
-		compiler = memnew(GDScriptCompiler);
 	}
+	compiler = memnew(GDScriptCompiler);
 
 	Error err = parser->parse(p_source, "", false);
 	if (err) {
