@@ -155,7 +155,7 @@ Dictionary GDDataType::get_method_info() const {
 
 Dictionary GDDataType::get_enum_values() const {
 	Dictionary values;
-	for (const KeyValue<StringName, int64_t> &E: node->enum_values) {
+	for (const KeyValue<StringName, int64_t> &E : node->enum_values) {
 		values[E.key] = E.value;
 	}
 	return values;
@@ -210,7 +210,7 @@ bool GDDataType::is_typed_container_type() const {
 }
 
 bool GDDataType::can_reference(const Ref<GDDataType> &p_other) const {
-	const GDScriptParser::DataType* other = p_other->node;
+	const GDScriptParser::DataType *other = p_other->node;
 	return node->can_reference(*other);
 }
 
@@ -438,50 +438,49 @@ template <typename T>
 Ref<T> GDNode::build_from(GDScriptParser::Node *p_node) {
 	Ref<T> result = memnew(T);
 	result->set_node(p_node);
-	result->base_node = p_node;
 	return result;
 }
 
 GDNode::Type GDNode::get_type() const {
-	return static_cast<GDNode::Type>(base_node->type);
+	return static_cast<GDNode::Type>(node->type);
 }
 
 bool GDNode::is_expression() const {
-	return base_node->is_expression();
+	return node->is_expression();
 }
 
 int GDNode::get_start_line() const {
-	return base_node->start_line;
+	return node->start_line;
 }
 
 int GDNode::get_end_line() const {
-	return base_node->end_line;
+	return node->end_line;
 }
 
 int GDNode::get_start_column() const {
-	return base_node->start_column;
+	return node->start_column;
 }
 
 int GDNode::get_end_column() const {
-	return base_node->end_column;
+	return node->end_column;
 }
 
 Ref<GDNode> GDNode::get_next() const {
-	return build_from(base_node->next);
+	return build_from(node->next);
 }
 
 TypedArray<GDAnnotationNode> GDNode::get_annotations() const {
 	TypedArray<GDAnnotationNode> annotations;
-	for (GDScriptParser::AnnotationNode *&annotation : base_node->annotations) {
-		Ref<GDAnnotationNode> node = build_from(annotation);
-		annotations.push_back(node);
+	for (GDScriptParser::AnnotationNode *&annotation : node->annotations) {
+		Ref<GDAnnotationNode> new_node = build_from(annotation);
+		annotations.push_back(new_node);
 	}
 	return annotations;
 }
 
 Ref<GDDataType> GDNode::get_datatype() const {
 	Ref<GDDataType> data = memnew(GDDataType);
-	data->set_node(&base_node->datatype);
+	data->set_node(&node->datatype);
 	return data;
 }
 
@@ -572,7 +571,9 @@ Ref<GDNode> GDNode::build_from(GDScriptParser::Node *p_node) {
 }
 
 GDNode::GDNode() = default;
-GDNode::~GDNode() {}
+
+GDNode::~GDNode() {
+}
 
 
 void GDAnnotationNode::_bind_methods() {
@@ -587,6 +588,7 @@ void GDAnnotationNode::_bind_methods() {
 }
 
 GDAnnotationNode::GDAnnotationNode() = default;
+
 GDAnnotationNode::~GDAnnotationNode() {
 }
 
@@ -631,6 +633,7 @@ void GDArrayNode::_bind_methods() {
 }
 
 GDArrayNode::GDArrayNode() = default;
+
 GDArrayNode::~GDArrayNode() {
 }
 
@@ -648,6 +651,7 @@ void GDAssertNode::_bind_methods() {
 }
 
 GDAssertNode::GDAssertNode() = default;
+
 GDAssertNode::~GDAssertNode() {
 }
 
@@ -693,6 +697,7 @@ Ref<GDExpressionNode> GDAssignableNode::get_initializer() const {
 }
 
 GDAssignableNode::GDAssignableNode() = default;
+
 GDAssignableNode::~GDAssignableNode() {
 }
 
@@ -734,6 +739,7 @@ bool GDAssignmentNode::use_conversion_assign() const {
 }
 
 GDAssignmentNode::GDAssignmentNode() = default;
+
 GDAssignmentNode::~GDAssignmentNode() {
 }
 
@@ -750,6 +756,7 @@ Ref<GDExpressionNode> GDAwaitNode::get_to_await() const {
 }
 
 GDAwaitNode::GDAwaitNode() = default;
+
 GDAwaitNode::~GDAwaitNode() {
 }
 
@@ -798,6 +805,7 @@ Ref<GDExpressionNode> GDBinaryOpNode::get_right_operand() const {
 }
 
 GDBinaryOpNode::GDBinaryOpNode() = default;
+
 GDBinaryOpNode::~GDBinaryOpNode() {
 }
 
@@ -805,6 +813,7 @@ void GDBreakNode::_bind_methods() {
 }
 
 GDBreakNode::GDBreakNode() = default;
+
 GDBreakNode::~GDBreakNode() {
 }
 
@@ -812,6 +821,7 @@ void GDBreakpointNode::_bind_methods() {
 }
 
 GDBreakpointNode::GDBreakpointNode() = default;
+
 GDBreakpointNode::~GDBreakpointNode() {
 }
 
@@ -853,6 +863,7 @@ GDNode::Type GDCallNode::get_callee_type() const {
 }
 
 GDCallNode::GDCallNode() = default;
+
 GDCallNode::~GDCallNode() {
 }
 
@@ -870,6 +881,7 @@ Ref<GDTypeNode> GDCastNode::get_cast_type() const {
 }
 
 GDCastNode::GDCastNode() = default;
+
 GDCastNode::~GDCastNode() {
 }
 
@@ -911,8 +923,7 @@ String GDClassNode::get_simplified_icon_path() const {
 
 TypedArray<GDMember> GDClassNode::get_members() const {
 	TypedArray<GDMember> members;
-	for (int i=0; i<node->members.size(); i++) {
-
+	for (int i = 0; i < node->members.size(); i++) {
 		members.append(GDMember::build_from(&node->members[i]));
 	}
 	return members;
@@ -920,7 +931,7 @@ TypedArray<GDMember> GDClassNode::get_members() const {
 
 Dictionary GDClassNode::get_member_indices() const {
 	Dictionary member_indices;
-	for (int i=0; i<node->members.size(); i++) {
+	for (int i = 0; i < node->members.size(); i++) {
 		member_indices[node->members[i].get_name()] = i;
 	}
 	return member_indices;
@@ -956,7 +967,7 @@ String GDClassNode::get_extends_path() const {
 
 TypedArray<GDIdentifierNode> GDClassNode::get_extends() const {
 	TypedArray<GDIdentifierNode> extends;
-	for (int i=0; i<node->extends.size(); i++) {
+	for (int i = 0; i < node->extends.size(); i++) {
 		extends.append(build_from(node->extends[i]));
 	}
 	return extends;
@@ -988,7 +999,7 @@ Ref<GDMember> GDClassNode::get_member(const StringName &p_name) {
 	if (_cached_members.has(p_name)) {
 		return _cached_members[p_name];
 	}
-	GDMember * member = memnew(GDMember);
+	GDMember *member = memnew(GDMember);
 	member->set_node(&node->members[node->members_indices[p_name]]);
 	_cached_members[p_name] = member;
 	return _cached_members[p_name];
@@ -1004,6 +1015,7 @@ bool GDClassNode::has_function(const StringName &p_name) const {
 
 
 GDClassNode::GDClassNode() = default;
+
 GDClassNode::~GDClassNode() {
 	_cached_members.clear();
 }
@@ -1012,6 +1024,7 @@ void GDConstantNode::_bind_methods() {
 }
 
 GDConstantNode::GDConstantNode() = default;
+
 GDConstantNode::~GDConstantNode() {
 }
 
@@ -1019,11 +1032,14 @@ void GDContinueNode::_bind_methods() {
 }
 
 GDContinueNode::GDContinueNode() = default;
+
 GDContinueNode::~GDContinueNode() {
 }
 
 GDPair::GDPair() = default;
-GDPair::~GDPair() {}
+
+GDPair::~GDPair() {
+}
 
 void GDPair::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_key"), &GDPair::get_key);
@@ -1058,7 +1074,7 @@ void GDDictionaryNode::_bind_methods() {
 
 TypedArray<GDPair> GDDictionaryNode::get_elements() const {
 	TypedArray<GDPair> elements;
-	for (int i=0; i<node->elements.size(); i++) {
+	for (int i = 0; i < node->elements.size(); i++) {
 		elements.append(GDPair::build_from(&node->elements[i]));
 	}
 	return elements;
@@ -1069,6 +1085,7 @@ GDDictionaryNode::Style GDDictionaryNode::get_style() const {
 }
 
 GDDictionaryNode::GDDictionaryNode() = default;
+
 GDDictionaryNode::~GDDictionaryNode() {
 }
 
@@ -1124,6 +1141,7 @@ void GDEnumNode::_bind_methods() {
 }
 
 GDEnumNode::GDEnumNode() = default;
+
 GDEnumNode::~GDEnumNode() {
 }
 
@@ -1133,7 +1151,7 @@ Ref<GDIdentifierNode> GDEnumNode::get_identifier() const {
 
 TypedArray<GDEnumValue> GDEnumNode::get_values() const {
 	TypedArray<GDEnumValue> values;
-	for (int i=0; i<node->values.size(); i++) {
+	for (int i = 0; i < node->values.size(); i++) {
 		Ref<GDEnumValue> value = memnew(GDEnumValue);
 		value->set_node(&node->values[i]);
 		values.append(value);
@@ -1148,7 +1166,7 @@ Variant GDEnumNode::get_dictionary() const {
 void GDExpressionNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_reduced_value"), &GDExpressionNode::get_reduced_value);
 	ClassDB::bind_method(D_METHOD("reduced"), &GDExpressionNode::reduced);
-	ClassDB::bind_method(D_METHOD("get_reduced_value"), &GDExpressionNode::get_reduced_value);
+	ClassDB::bind_method(D_METHOD("is_constant"), &GDExpressionNode::is_constant);
 }
 
 bool GDExpressionNode::reduced() const {
@@ -1164,6 +1182,7 @@ Variant GDExpressionNode::get_reduced_value() const {
 }
 
 GDExpressionNode::GDExpressionNode() = default;
+
 GDExpressionNode::~GDExpressionNode() {
 }
 
@@ -1196,6 +1215,7 @@ Ref<GDSuiteNode> GDForNode::get_loop() const {
 }
 
 GDForNode::GDForNode() = default;
+
 GDForNode::~GDForNode() {
 }
 
@@ -1216,15 +1236,25 @@ void GDFunctionNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("resolved_body"), &GDFunctionNode::resolved_body);
 	ClassDB::bind_method(D_METHOD("is_vararg"), &GDFunctionNode::is_vararg);
 	ClassDB::bind_method(D_METHOD("get_info"), &GDFunctionNode::get_info);
+	ClassDB::bind_method(D_METHOD("get_name"), &GDFunctionNode::get_name);
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "name"), "", "get_name");
 }
 
 Ref<GDIdentifierNode> GDFunctionNode::get_identifier() const {
 	return build_from(node->identifier);
 }
 
+StringName GDFunctionNode::get_name() const {
+	if (node == nullptr) {
+		return "";
+	}
+	return node->identifier->name;
+}
+
 TypedArray<GDParameterNode> GDFunctionNode::get_parameters() const {
 	TypedArray<GDParameterNode> parameters;
-	for (int i=0; i<node->parameters.size(); i++) {
+	for (int i = 0; i < node->parameters.size(); i++) {
 		parameters.append(build_from(node->parameters[i]));
 	}
 	return parameters;
@@ -1232,7 +1262,7 @@ TypedArray<GDParameterNode> GDFunctionNode::get_parameters() const {
 
 Dictionary GDFunctionNode::get_parameter_indices() const {
 	Dictionary indices;
-	for (int i=0; i<node->parameters.size(); i++) {
+	for (int i = 0; i < node->parameters.size(); i++) {
 		indices[node->parameters[i]->identifier->name] = i;
 	}
 	return indices;
@@ -1276,7 +1306,7 @@ Ref<GDLambdaNode> GDFunctionNode::get_source_lambda() const {
 
 Array GDFunctionNode::get_default_arg_values() const {
 	Array arg_values;
-	for (int i=0; i<node->default_arg_values.size(); i++) {
+	for (int i = 0; i < node->default_arg_values.size(); i++) {
 		arg_values.push_back(node->default_arg_values[i]);
 	}
 	return arg_values;
@@ -1295,6 +1325,7 @@ bool GDFunctionNode::is_vararg() const {
 }
 
 GDFunctionNode::GDFunctionNode() = default;
+
 GDFunctionNode::~GDFunctionNode() {
 }
 
@@ -1312,6 +1343,7 @@ bool GDGetNodeNode::use_dollar() const {
 }
 
 GDGetNodeNode::GDGetNodeNode() = default;
+
 GDGetNodeNode::~GDGetNodeNode() {
 }
 
@@ -1419,6 +1451,7 @@ int GDIdentifierNode::get_usages() const {
 }
 
 GDIdentifierNode::GDIdentifierNode() = default;
+
 GDIdentifierNode::~GDIdentifierNode() {
 }
 
@@ -1437,10 +1470,14 @@ Ref<GDSuiteNode> GDIfNode::get_true_block() const {
 }
 
 Ref<GDSuiteNode> GDIfNode::get_false_block() const {
+	if (node->false_block == nullptr) {
+		return nullptr;
+	}
 	return build_from(node->false_block);
 }
 
 GDIfNode::GDIfNode() = default;
+
 GDIfNode::~GDIfNode() {
 }
 
@@ -1476,7 +1513,7 @@ TypedArray<GDIdentifierNode> GDLambdaNode::get_captures() const {
 
 Dictionary GDLambdaNode::get_capture_indices() const {
 	Dictionary indices;
-	for (const KeyValue<StringName, int> &E: node->captures_indices) {
+	for (const KeyValue<StringName, int> &E : node->captures_indices) {
 		indices[E.key] = E.value;
 	}
 	return indices;
@@ -1491,6 +1528,7 @@ bool GDLambdaNode::has_name() const {
 }
 
 GDLambdaNode::GDLambdaNode() = default;
+
 GDLambdaNode::~GDLambdaNode() {
 }
 
@@ -1503,6 +1541,7 @@ Variant GDLiteralNode::get_value() const {
 }
 
 GDLiteralNode::GDLiteralNode() = default;
+
 GDLiteralNode::~GDLiteralNode() {
 }
 
@@ -1524,6 +1563,7 @@ TypedArray<GDMatchBranchNode> GDMatchNode::get_branches() const {
 }
 
 GDMatchNode::GDMatchNode() = default;
+
 GDMatchNode::~GDMatchNode() {
 }
 
@@ -1555,6 +1595,7 @@ Ref<GDSuiteNode> GDMatchBranchNode::get_guard_body() const {
 }
 
 GDMatchBranchNode::GDMatchBranchNode() = default;
+
 GDMatchBranchNode::~GDMatchBranchNode() {
 }
 
@@ -1562,6 +1603,7 @@ void GDParameterNode::_bind_methods() {
 }
 
 GDParameterNode::GDParameterNode() = default;
+
 GDParameterNode::~GDParameterNode() {
 }
 
@@ -1569,6 +1611,7 @@ void GDPassNode::_bind_methods() {
 }
 
 GDPassNode::GDPassNode() = default;
+
 GDPassNode::~GDPassNode() {
 }
 
@@ -1642,7 +1685,7 @@ TypedArray<GDPatternPair> GDPatternNode::get_dictionary() const {
 
 Dictionary GDPatternNode::get_binds() const {
 	Dictionary binds;
-	for (const KeyValue<StringName, GDScriptParser::IdentifierNode*> &E: node->binds) {
+	for (const KeyValue<StringName, GDScriptParser::IdentifierNode *> &E : node->binds) {
 		binds[E.key] = build_from(E.value);
 	}
 	return binds;
@@ -1658,6 +1701,7 @@ Ref<GDIdentifierNode> GDPatternNode::get_bind(const StringName &p_name) const {
 }
 
 GDPatternNode::GDPatternNode() = default;
+
 GDPatternNode::~GDPatternNode() {
 }
 
@@ -1693,6 +1737,7 @@ Ref<Resource> GDPreloadNode::get_resource() const {
 }
 
 GDPreloadNode::GDPreloadNode() = default;
+
 GDPreloadNode::~GDPreloadNode() {
 }
 
@@ -1710,6 +1755,7 @@ bool GDReturnNode::void_return() const {
 }
 
 GDReturnNode::GDReturnNode() = default;
+
 GDReturnNode::~GDReturnNode() {
 }
 
@@ -1722,6 +1768,7 @@ Ref<GDClassNode> GDSelfNode::get_current_class() const {
 }
 
 GDSelfNode::GDSelfNode() = default;
+
 GDSelfNode::~GDSelfNode() {
 }
 
@@ -1747,7 +1794,7 @@ TypedArray<GDParameterNode> GDSignalNode::get_parameters() const {
 
 Dictionary GDSignalNode::get_parameter_indices() const {
 	Dictionary indices;
-	for (KeyValue<StringName, int> &E: node->parameters_indices) {
+	for (KeyValue<StringName, int> &E : node->parameters_indices) {
 		indices[E.key] = E.value;
 	}
 	return indices;
@@ -1762,6 +1809,7 @@ int GDSignalNode::get_usages() const {
 }
 
 GDSignalNode::GDSignalNode() = default;
+
 GDSignalNode::~GDSignalNode() {
 }
 
@@ -1795,6 +1843,7 @@ bool GDSubscriptNode::is_attribute() const {
 }
 
 GDSubscriptNode::GDSubscriptNode() = default;
+
 GDSubscriptNode::~GDSubscriptNode() {
 }
 
@@ -1831,7 +1880,7 @@ TypedArray<GDSuiteLocal> GDSuiteNode::get_locals() const {
 
 Dictionary GDSuiteNode::get_locals_indices() const {
 	Dictionary indices;
-	for (KeyValue<StringName, int> &E: node->locals_indices) {
+	for (KeyValue<StringName, int> &E : node->locals_indices) {
 		indices[E.key] = E.value;
 	}
 	return indices;
@@ -1880,6 +1929,7 @@ TypedArray<GDNode> GDSuiteNode::get_statements() const {
 }
 
 GDSuiteNode::GDSuiteNode() = default;
+
 GDSuiteNode::~GDSuiteNode() {
 }
 
@@ -1977,7 +2027,7 @@ Ref<GDDataType> GDSuiteLocal::get_datatype() const {
 			type->set_node(&node->parameter->datatype);
 		case FOR_VARIABLE:
 		case PATTERN_BIND:
-			 type->set_node(&node->bind->datatype);
+			type->set_node(&node->bind->datatype);
 		default:
 			return nullptr;
 	}
@@ -2008,6 +2058,7 @@ Ref<GDExpressionNode> GDTernaryOpNode::get_false_expr() const {
 }
 
 GDTernaryOpNode::GDTernaryOpNode() = default;
+
 GDTernaryOpNode::~GDTernaryOpNode() {
 }
 
@@ -2042,6 +2093,7 @@ Ref<GDTypeNode> GDTypeNode::get_container_type_or_null(int p_index) const {
 }
 
 GDTypeNode::GDTypeNode() = default;
+
 GDTypeNode::~GDTypeNode() {
 }
 
@@ -2066,6 +2118,7 @@ Ref<GDDataType> GDTypeTestNode::get_test_datatype() const {
 }
 
 GDTypeTestNode::GDTypeTestNode() = default;
+
 GDTypeTestNode::~GDTypeTestNode() {
 }
 
@@ -2093,6 +2146,7 @@ Ref<GDExpressionNode> GDUnaryOpNode::get_operand() const {
 }
 
 GDUnaryOpNode::GDUnaryOpNode() = default;
+
 GDUnaryOpNode::~GDUnaryOpNode() {
 }
 
@@ -2170,6 +2224,7 @@ bool GDVariableNode::is_static() const {
 }
 
 GDVariableNode::GDVariableNode() = default;
+
 GDVariableNode::~GDVariableNode() {
 }
 
@@ -2178,6 +2233,8 @@ Dictionary GDVariableNode::get_export_info() const {
 }
 
 void GDWhileNode::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_condition"), &GDWhileNode::get_condition);
+	ClassDB::bind_method(D_METHOD("get_loop"), &GDWhileNode::get_loop);
 }
 
 Ref<GDExpressionNode> GDWhileNode::get_condition() const {
@@ -2189,6 +2246,6 @@ Ref<GDSuiteNode> GDWhileNode::get_loop() const {
 }
 
 GDWhileNode::GDWhileNode() = default;
+
 GDWhileNode::~GDWhileNode() {
 }
-

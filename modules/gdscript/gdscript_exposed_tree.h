@@ -246,11 +246,10 @@ public:
 
 protected:
 	static void _bind_methods();
-	GDScriptParser::Node *base_node = nullptr;
+	GDScriptParser::Node *node = nullptr;
 
 public:
-	virtual void set_node(GDScriptParser::Node *p_node) {
-	}
+	virtual void set_node(GDScriptParser::Node *p_node) { node = p_node; }
 
 	GDNode::Type get_type() const;
 	bool is_expression() const;
@@ -284,7 +283,10 @@ public:
 	GDExpressionNode();
 	~GDExpressionNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ExpressionNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ExpressionNode *>(p_node);
+	}
 };
 
 class GDAnnotationNode : public GDNode {
@@ -307,7 +309,10 @@ public:
 	bool is_applied() const;
 	bool applies_to(uint32_t p_target_kinds) const;
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AnnotationNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::AnnotationNode *>(p_node);
+	}
 };
 
 class GDArrayNode : public GDExpressionNode {
@@ -321,7 +326,11 @@ public:
 	GDArrayNode();
 	~GDArrayNode();
 	TypedArray<GDExpressionNode> get_elements() const;
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ArrayNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ArrayNode *>(p_node);
+	}
 };
 
 class GDAssertNode : public GDNode {
@@ -336,7 +345,11 @@ public:
 	~GDAssertNode();
 	Ref<GDExpressionNode> get_condition() const;
 	Ref<GDExpressionNode> get_message() const;
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AssertNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::AssertNode *>(p_node);
+	}
 };
 
 class GDAssignableNode : public GDNode {
@@ -357,7 +370,10 @@ public:
 	GDAssignableNode();
 	~GDAssignableNode();
 
-	virtual void set_node(GDScriptParser::Node *p_node) { node = static_cast<GDScriptParser::AssignableNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::AssignableNode *>(p_node);
+	}
 };
 
 class GDAssignmentNode : public GDExpressionNode {
@@ -392,7 +408,11 @@ public:
 
 	GDAssignmentNode();
 	~GDAssignmentNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AssignmentNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::AssignmentNode *>(p_node);
+	}
 };
 
 class GDAwaitNode : public GDExpressionNode {
@@ -407,7 +427,11 @@ public:
 
 	GDAwaitNode();
 	~GDAwaitNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AwaitNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::AwaitNode *>(p_node);
+	}
 };
 
 class GDBinaryOpNode : public GDExpressionNode {
@@ -451,6 +475,7 @@ public:
 	~GDBinaryOpNode();
 
 	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
 		node = static_cast<GDScriptParser::BinaryOpNode *>(p_node);
 	}
 };
@@ -465,7 +490,11 @@ protected:
 public:
 	GDBreakNode();
 	~GDBreakNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::BreakNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::BreakNode *>(p_node);
+	}
 };
 
 class GDBreakpointNode : public GDNode {
@@ -478,7 +507,11 @@ protected:
 public:
 	GDBreakpointNode();
 	~GDBreakpointNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::BreakpointNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::BreakpointNode *>(p_node);
+	}
 };
 
 class GDCallNode : public GDExpressionNode {
@@ -498,7 +531,11 @@ public:
 
 	GDCallNode();
 	~GDCallNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::CallNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::CallNode *>(p_node);
+	}
 };
 
 class GDCastNode : public GDExpressionNode {
@@ -514,7 +551,11 @@ public:
 
 	GDCastNode();
 	~GDCastNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::CastNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::CastNode *>(p_node);
+	}
 };
 
 class GDClassNode : public GDNode {
@@ -548,7 +589,10 @@ public:
 	bool has_member(const StringName &p_name) const;
 	bool has_function(const StringName &p_name) const;
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ClassNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ClassNode *>(p_node);
+	}
 
 	GDClassNode();
 	~GDClassNode();
@@ -568,7 +612,10 @@ public:
 	GDConstantNode();
 	~GDConstantNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ConstantNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDAssignableNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ConstantNode *>(p_node);
+	}
 };
 
 class GDContinueNode : public GDNode {
@@ -582,7 +629,10 @@ public:
 	GDContinueNode();
 	~GDContinueNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ContinueNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ContinueNode *>(p_node);
+	}
 };
 
 class GDPair : public RefCounted {
@@ -621,7 +671,10 @@ public:
 	GDDictionaryNode();
 	~GDDictionaryNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::DictionaryNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::DictionaryNode *>(p_node);
+	}
 };
 
 class GDEnumValue : public RefCounted {
@@ -660,7 +713,10 @@ public:
 	TypedArray<GDEnumValue> get_values() const;
 	Variant get_dictionary() const;
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::EnumNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::EnumNode *>(p_node);
+	}
 };
 
 class GDForNode : public GDNode {
@@ -680,7 +736,10 @@ public:
 	GDForNode();
 	~GDForNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ForNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ForNode *>(p_node);
+	}
 };
 
 class GDFunctionNode : public GDNode {
@@ -692,6 +751,7 @@ protected:
 
 public:
 	Ref<GDIdentifierNode> get_identifier() const;
+	StringName get_name() const;
 	TypedArray<GDParameterNode> get_parameters() const;
 	Dictionary get_parameter_indices() const;
 	Ref<GDParameterNode> get_rest_parameter() const;
@@ -710,7 +770,11 @@ public:
 
 	GDFunctionNode();
 	~GDFunctionNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::FunctionNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::FunctionNode *>(p_node);
+	}
 };
 
 class GDGetNodeNode : public GDExpressionNode {
@@ -727,7 +791,10 @@ public:
 	GDGetNodeNode();
 	~GDGetNodeNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::GetNodeNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::GetNodeNode *>(p_node);
+	}
 };
 
 class GDIdentifierNode : public GDExpressionNode {
@@ -775,7 +842,10 @@ public:
 	GDIdentifierNode();
 	~GDIdentifierNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::IdentifierNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::IdentifierNode *>(p_node);
+	}
 };
 
 class GDIfNode : public GDNode {
@@ -793,7 +863,10 @@ public:
 	GDIfNode();
 	~GDIfNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::IfNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::IfNode *>(p_node);
+	}
 };
 
 class GDLambdaNode : public GDExpressionNode {
@@ -815,7 +888,10 @@ public:
 	GDLambdaNode();
 	~GDLambdaNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::LambdaNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::LambdaNode *>(p_node);
+	}
 };
 
 class GDLiteralNode : public GDExpressionNode {
@@ -831,7 +907,10 @@ public:
 	GDLiteralNode();
 	~GDLiteralNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::LiteralNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::LiteralNode *>(p_node);
+	}
 };
 
 class GDMatchNode : public GDNode {
@@ -847,7 +926,11 @@ public:
 
 	GDMatchNode();
 	~GDMatchNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::MatchNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::MatchNode *>(p_node);
+	}
 };
 
 class GDMatchBranchNode : public GDNode {
@@ -866,7 +949,10 @@ public:
 	GDMatchBranchNode();
 	~GDMatchBranchNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::MatchBranchNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::MatchBranchNode *>(p_node);
+	}
 };
 
 class GDParameterNode : public GDAssignableNode {
@@ -880,7 +966,10 @@ public:
 	GDParameterNode();
 	~GDParameterNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ParameterNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDAssignableNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ParameterNode *>(p_node);
+	}
 };
 
 class GDPassNode : public GDNode {
@@ -893,7 +982,11 @@ protected:
 public:
 	GDPassNode();
 	~GDPassNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::PassNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::PassNode *>(p_node);
+	}
 };
 
 class GDPatternNode : public GDNode {
@@ -929,7 +1022,10 @@ public:
 	GDPatternNode();
 	~GDPatternNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::PatternNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::PatternNode *>(p_node);
+	}
 };
 
 class GDPatternPair : public RefCounted {
@@ -960,7 +1056,10 @@ public:
 	GDPreloadNode();
 	~GDPreloadNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::PreloadNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::PreloadNode *>(p_node);
+	}
 };
 
 class GDReturnNode : public GDNode {
@@ -977,7 +1076,10 @@ public:
 	GDReturnNode();
 	~GDReturnNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ReturnNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::ReturnNode *>(p_node);
+	}
 };
 
 class GDSelfNode : public GDExpressionNode {
@@ -993,7 +1095,10 @@ public:
 	GDSelfNode();
 	~GDSelfNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::SelfNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::SelfNode *>(p_node);
+	}
 };
 
 class GDSignalNode : public GDNode {
@@ -1013,7 +1118,10 @@ public:
 	GDSignalNode();
 	~GDSignalNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::SignalNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::SignalNode *>(p_node);
+	}
 };
 
 class GDSubscriptNode : public GDExpressionNode {
@@ -1032,7 +1140,10 @@ public:
 	GDSubscriptNode();
 	~GDSubscriptNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::SubscriptNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::SubscriptNode *>(p_node);
+	}
 };
 
 class GDSuiteNode : public GDNode {
@@ -1060,7 +1171,10 @@ public:
 	GDSuiteNode();
 	~GDSuiteNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::SuiteNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::SuiteNode *>(p_node);
+	}
 };
 
 class GDSuiteLocal : public RefCounted {
@@ -1115,7 +1229,10 @@ public:
 	GDTernaryOpNode();
 	~GDTernaryOpNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::TernaryOpNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::TernaryOpNode *>(p_node);
+	}
 };
 
 class GDTypeNode : public GDNode {
@@ -1132,7 +1249,11 @@ public:
 
 	GDTypeNode();
 	~GDTypeNode();
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::TypeNode *>(p_node); }
+
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::TypeNode *>(p_node);
+	}
 };
 
 class GDTypeTestNode : public GDExpressionNode {
@@ -1150,7 +1271,10 @@ public:
 	GDTypeTestNode();
 	~GDTypeTestNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::TypeTestNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::TypeTestNode *>(p_node);
+	}
 };
 
 class GDUnaryOpNode : public GDExpressionNode {
@@ -1176,7 +1300,10 @@ public:
 	GDUnaryOpNode();
 	~GDUnaryOpNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::UnaryOpNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDExpressionNode::set_node(p_node);
+		node = static_cast<GDScriptParser::UnaryOpNode *>(p_node);
+	}
 };
 
 class GDVariableNode : public GDAssignableNode {
@@ -1210,8 +1337,8 @@ public:
 	~GDVariableNode();
 
 	void set_node(GDScriptParser::Node *p_node) override {
-		node = static_cast<GDScriptParser::VariableNode *>(p_node);
 		GDAssignableNode::set_node(p_node);
+		node = static_cast<GDScriptParser::VariableNode *>(p_node);
 	}
 };
 
@@ -1229,31 +1356,23 @@ public:
 	GDWhileNode();
 	~GDWhileNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::WhileNode *>(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		GDNode::set_node(p_node);
+		node = static_cast<GDScriptParser::WhileNode *>(p_node);
+	}
 };
 
 VARIANT_ENUM_CAST(GDNode::Type);
-
 VARIANT_ENUM_CAST(GDMember::Type);
-
 VARIANT_ENUM_CAST(GDDictionaryNode::Style);
-
 VARIANT_ENUM_CAST(GDIdentifierNode::Source);
-
 VARIANT_ENUM_CAST(GDDataType::Kind);
-
 VARIANT_ENUM_CAST(GDDataType::TypeSource);
-
 VARIANT_ENUM_CAST(GDAssignmentNode::Operation);
-
 VARIANT_ENUM_CAST(GDBinaryOpNode::OpType);
-
 VARIANT_ENUM_CAST(GDPatternNode::Type);
-
 VARIANT_ENUM_CAST(GDSuiteLocal::Type);
-
 VARIANT_ENUM_CAST(GDUnaryOpNode::OpType);
-
 VARIANT_ENUM_CAST(GDVariableNode::PropertyStyle);
 
 #endif // GDSCRIPT_EXPOSED_TREE_H
