@@ -36,7 +36,9 @@
 #include "gdscript_parser.h"
 
 class GDMember;
+class GDSuiteLocal;
 class GDNode;
+class GDPatternPair;
 class GDAnnotationNode;
 class GDArrayNode;
 class GDAssertNode;
@@ -52,6 +54,7 @@ class GDClassNode;
 class GDConstantNode;
 class GDContinueNode;
 class GDDictionaryNode;
+class GDEnumValue;
 class GDEnumNode;
 class GDExpressionNode;
 class GDForNode;
@@ -78,6 +81,76 @@ class GDTypeTestNode;
 class GDUnaryOpNode;
 class GDVariableNode;
 class GDWhileNode;
+class GDDataType;
+
+class GDDataType : public RefCounted {
+	GDCLASS(GDDataType, RefCounted);
+
+public:
+	enum Kind {
+		BUILTIN,
+		NATIVE,
+		SCRIPT,
+		CLASS,
+		ENUM,
+		VARIANT,
+		RESOLVING,
+		UNRESOLVED,
+	};
+
+	enum TypeSource {
+		UNDETECTED,
+		INFERRED,
+		ANNOTATED_EXPLICIT,
+		ANNOTATED_INFERRED,
+	};
+
+protected:
+	static void _bind_method();
+	const GDScriptParser::DataType *node = nullptr;
+
+public:
+	GDDataType();
+	~GDDataType();
+
+	TypedArray<GDDataType> get_container_element_types() const;
+	Kind get_kind() const;
+	TypeSource get_type_source() const;
+
+	bool is_constant() const;
+	bool is_read_only() const;
+	bool is_meta_type() const;
+	bool is_pseudo_type() const;
+	bool is_coroutine() const;
+
+	Variant::Type get_builtin_type() const;
+	StringName get_native_type() const;
+	StringName get_enum_type() const;
+	Ref<Script> get_script_type() const;
+	String get_script_path() const;
+	Ref<GDClassNode> get_class_type() const;
+
+	Dictionary get_method_info() const;
+	Dictionary get_enum_values() const;
+
+	bool is_set() const;
+	bool is_resolving() const;
+	bool has_no_type() const;
+	bool is_variant() const;
+	bool is_hard_type() const;
+
+	String to_string() const;
+	String to_string_strict() const;
+	Dictionary to_property_info(const String &p_name) const;
+
+	int get_container_element_type_count() const;
+	bool has_container_element_type(int p_index) const;
+	bool has_container_element_types() const;
+	bool is_typed_container_type() const;
+	bool can_reference(const Ref<GDDataType> &p_other) const;
+
+	void set_node(const GDScriptParser::DataType *p_node) { node = p_node; }
+};
 
 class GDMember : public RefCounted {
 	GDCLASS(GDMember, RefCounted);
@@ -111,13 +184,13 @@ public:
 	Ref<GDVariableNode> get_as_signal_variable_node() const;
 	Ref<GDEnumNode> get_as_enum_node() const;
 	Ref<GDAnnotationNode> get_as_annotation_node() const;
-	// enum value
+	Ref<GDEnumValue> get_enum_value() const;
 
 	String get_name() const;
 	String get_type_name() const;
 	int get_line() const;
 
-	//data type
+	Ref<GDDataType> get_datatype() const;
 	Ref<GDNode> get_source_node() const;
 
 	GDMember();
@@ -186,6 +259,8 @@ public:
 	int get_start_column() const;
 	int get_end_column() const;
 	Ref<GDNode> get_next() const;
+	TypedArray<GDAnnotationNode> get_annotations() const;
+	Ref<GDDataType> get_datatype() const;
 
 	template <typename T>
 	static Ref<T> build_from(GDScriptParser::Node *p_node);
@@ -202,6 +277,8 @@ protected:
 	GDScriptParser::ExpressionNode *node = nullptr;
 
 public:
+	bool reduced() const;
+	bool is_constant() const;
 	Variant get_reduced_value() const;
 
 	GDExpressionNode();
@@ -220,6 +297,16 @@ protected:
 public:
 	GDAnnotationNode();
 	~GDAnnotationNode();
+
+	StringName get_name() const;
+	TypedArray<GDExpressionNode> get_arguments() const;
+	Array get_resolved_arguments() const;
+
+	Dictionary get_export_info() const;
+	bool is_resolved() const;
+	bool is_applied() const;
+	bool applies_to(uint32_t p_target_kinds) const;
+
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AnnotationNode *>(p_node); }
 };
 
@@ -233,6 +320,7 @@ protected:
 public:
 	GDArrayNode();
 	~GDArrayNode();
+	TypedArray<GDExpressionNode> get_elements() const;
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::ArrayNode *>(p_node); }
 };
 
@@ -246,6 +334,8 @@ protected:
 public:
 	GDAssertNode();
 	~GDAssertNode();
+	Ref<GDExpressionNode> get_condition() const;
+	Ref<GDExpressionNode> get_message() const;
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AssertNode *>(p_node); }
 };
 
@@ -257,7 +347,12 @@ protected:
 	GDScriptParser::AssignableNode *node = nullptr;
 
 public:
+	Ref<GDIdentifierNode> get_identifier() const;
 	Ref<GDExpressionNode> get_initializer() const;
+	Ref<GDTypeNode> get_datatype_specifier() const;
+	bool infer_datatype() const;
+	bool use_conversion_assign() const;
+	int get_usages() const;
 
 	GDAssignableNode();
 	~GDAssignableNode();
@@ -268,15 +363,36 @@ public:
 class GDAssignmentNode : public GDExpressionNode {
 	GDCLASS(GDAssignmentNode, GDExpressionNode);
 
+public:
+	enum Operation {
+		OP_NONE,
+		OP_ADDITION,
+		OP_SUBTRACTION,
+		OP_MULTIPLICATION,
+		OP_DIVISION,
+		OP_MODULO,
+		OP_POWER,
+		OP_BIT_SHIFT_LEFT,
+		OP_BIT_SHIFT_RIGHT,
+		OP_BIT_AND,
+		OP_BIT_OR,
+		OP_BIT_XOR,
+	};
+
 protected:
 	static void _bind_methods();
 	GDScriptParser::AssignmentNode *node = nullptr;
 
 public:
+	Operation get_operation() const;
+	Variant::Operator get_variant_op() const;
+	Ref<GDExpressionNode> get_assignee() const;
+	Ref<GDExpressionNode> get_assigned_value() const;
+	bool use_conversion_assign() const;
+
 	GDAssignmentNode();
 	~GDAssignmentNode();
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AssignmentNode *>(p_node); }
-	Ref<GDExpressionNode> get_assigned_value() const;
 };
 
 class GDAwaitNode : public GDExpressionNode {
@@ -287,6 +403,8 @@ protected:
 	GDScriptParser::AwaitNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_to_await() const;
+
 	GDAwaitNode();
 	~GDAwaitNode();
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::AwaitNode *>(p_node); }
@@ -295,11 +413,40 @@ public:
 class GDBinaryOpNode : public GDExpressionNode {
 	GDCLASS(GDBinaryOpNode, GDExpressionNode);
 
+public:
+	enum OpType {
+		OP_ADDITION,
+		OP_SUBTRACTION,
+		OP_MULTIPLICATION,
+		OP_DIVISION,
+		OP_MODULO,
+		OP_POWER,
+		OP_BIT_LEFT_SHIFT,
+		OP_BIT_RIGHT_SHIFT,
+		OP_BIT_AND,
+		OP_BIT_OR,
+		OP_BIT_XOR,
+		OP_LOGIC_AND,
+		OP_LOGIC_OR,
+		OP_CONTENT_TEST,
+		OP_COMP_EQUAL,
+		OP_COMP_NOT_EQUAL,
+		OP_COMP_LESS,
+		OP_COMP_LESS_EQUAL,
+		OP_COMP_GREATER,
+		OP_COMP_GREATER_EQUAL,
+	};
+
 protected:
 	static void _bind_methods();
 	GDScriptParser::BinaryOpNode *node = nullptr;
 
 public:
+	OpType get_operation() const;
+	Variant::Operator get_variant_op() const;
+	Ref<GDExpressionNode> get_left_operand() const;
+	Ref<GDExpressionNode> get_right_operand() const;
+
 	GDBinaryOpNode();
 	~GDBinaryOpNode();
 
@@ -342,6 +489,13 @@ protected:
 	GDScriptParser::CallNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_callee() const;
+	TypedArray<GDExpressionNode> get_arguments() const;
+	StringName get_function_name() const;
+	bool is_super() const;
+	bool is_static() const;
+	GDNode::Type get_callee_type() const;
+
 	GDCallNode();
 	~GDCallNode();
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::CallNode *>(p_node); }
@@ -351,10 +505,13 @@ class GDCastNode : public GDExpressionNode {
 	GDCLASS(GDCastNode, GDExpressionNode);
 
 protected:
-	static void _bind_methods();
+	static auto _bind_methods() -> void;
 	GDScriptParser::CastNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_operand() const;
+	Ref<GDTypeNode> get_cast_type() const;
+
 	GDCastNode();
 	~GDCastNode();
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::CastNode *>(p_node); }
@@ -373,7 +530,7 @@ public:
 	String get_simplified_icon_path() const;
 	TypedArray<GDMember> get_members() const;
 	Dictionary get_member_indices() const;
-	Ref<GDClassNode> get_outer_class() const;
+	Ref<GDClassNode> get_outer() const;
 	bool extends_used() const;
 	bool onready_used() const;
 	bool is_abstract() const;
@@ -381,7 +538,7 @@ public:
 	bool annotated_static_unload() const;
 	String get_extends_path() const;
 	TypedArray<GDIdentifierNode> get_extends() const;
-	// base_type
+	Ref<GDDataType> get_base_type() const;
 	String get_fqcn() const;
 	bool resolved_interface() const;
 	bool resolved_body() const;
@@ -400,8 +557,8 @@ private:
 	HashMap<StringName, Ref<GDMember>> _cached_members;
 };
 
-class GDConstantNode : public GDAssignmentNode {
-	GDCLASS(GDConstantNode, GDAssignmentNode);
+class GDConstantNode : public GDAssignableNode {
+	GDCLASS(GDConstantNode, GDAssignableNode);
 
 protected:
 	static void _bind_methods();
@@ -467,6 +624,27 @@ public:
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::DictionaryNode *>(p_node); }
 };
 
+class GDEnumValue : public RefCounted {
+	GDCLASS(GDEnumValue, RefCounted);
+
+protected:
+	static void _bind_methods();
+	const GDScriptParser::EnumNode::Value *node = nullptr;
+
+public:
+	Ref<GDIdentifierNode> get_identifier() const;
+	Ref<GDExpressionNode> get_custom_value() const;
+	Ref<GDEnumNode> get_parent_enum() const;
+	int get_index() const;
+	bool resolved() const;
+	int64_t get_value() const;
+	int get_line() const;
+	int get_start_column() const;
+	int get_end_column() const;
+
+	void set_node(const GDScriptParser::EnumNode::Value *p_node) { node = p_node; }
+};
+
 class GDEnumNode : public GDNode {
 	GDCLASS(GDEnumNode, GDNode);
 
@@ -477,6 +655,10 @@ protected:
 public:
 	GDEnumNode();
 	~GDEnumNode();
+
+	Ref<GDIdentifierNode> get_identifier() const;
+	TypedArray<GDEnumValue> get_values() const;
+	Variant get_dictionary() const;
 
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::EnumNode *>(p_node); }
 };
@@ -519,7 +701,7 @@ public:
 	bool is_static() const;
 	bool is_coroutine() const;
 	Variant get_rpc_config() const;
-	// method info
+	Dictionary get_info() const;
 	Ref<GDLambdaNode> get_source_lambda() const;
 	Array get_default_arg_values() const;
 	bool resolved_signature() const;
@@ -622,6 +804,14 @@ protected:
 	GDScriptParser::LambdaNode *node = nullptr;
 
 public:
+	Ref<GDFunctionNode> get_function() const;
+	Ref<GDFunctionNode> get_parent_function() const;
+	Ref<GDLambdaNode> get_parent_lambda() const;
+	TypedArray<GDIdentifierNode> get_captures() const;
+	Dictionary get_capture_indices() const;
+	bool use_self() const;
+	bool has_name() const;
+
 	GDLambdaNode();
 	~GDLambdaNode();
 
@@ -636,6 +826,8 @@ protected:
 	GDScriptParser::LiteralNode *node = nullptr;
 
 public:
+	Variant get_value() const;
+
 	GDLiteralNode();
 	~GDLiteralNode();
 
@@ -650,6 +842,9 @@ protected:
 	GDScriptParser::MatchNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_test() const;
+	TypedArray<GDMatchBranchNode> get_branches() const;
+
 	GDMatchNode();
 	~GDMatchNode();
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::MatchNode *>(p_node); }
@@ -663,6 +858,11 @@ protected:
 	GDScriptParser::MatchBranchNode *node = nullptr;
 
 public:
+	TypedArray<GDPatternNode> get_patterns() const;
+	Ref<GDSuiteNode> get_block() const;
+	bool has_wildcard() const;
+	Ref<GDSuiteNode> get_guard_body() const;
+
 	GDMatchBranchNode();
 	~GDMatchBranchNode();
 
@@ -699,15 +899,50 @@ public:
 class GDPatternNode : public GDNode {
 	GDCLASS(GDPatternNode, GDNode);
 
+public:
+	enum Type {
+		PT_LITERAL,
+		PT_EXPRESSION,
+		PT_BIND,
+		PT_ARRAY,
+		PT_DICTIONARY,
+		PT_REST,
+		PT_WILDCARD,
+	};
+
 protected:
 	static void _bind_methods();
 	GDScriptParser::PatternNode *node = nullptr;
 
 public:
+	Type get_pattern_type() const;
+	Ref<GDLiteralNode> get_as_literal() const;
+	Ref<GDIdentifierNode> get_as_identifier() const;
+	Ref<GDExpressionNode> get_as_expression() const;
+	TypedArray<GDPatternNode> get_array() const;
+	bool rest_used() const;
+	TypedArray<GDPatternPair> get_dictionary() const;
+	Dictionary get_binds() const;
+	bool has_bind(const StringName &p_name) const;
+	Ref<GDIdentifierNode> get_bind(const StringName &p_name) const;
+
 	GDPatternNode();
 	~GDPatternNode();
 
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::PatternNode *>(p_node); }
+};
+
+class GDPatternPair : public RefCounted {
+	GDCLASS(GDPatternPair, RefCounted);
+
+protected:
+	static void _bind_methods();
+	const GDScriptParser::PatternNode::Pair *node = nullptr;
+
+public:
+	Ref<GDExpressionNode> get_key() const;
+	Ref<GDPatternNode> get_value_pattern() const;
+	void set_node(const GDScriptParser::PatternNode::Pair *p_node) { node = p_node; }
 };
 
 class GDPreloadNode : public GDExpressionNode {
@@ -718,6 +953,10 @@ protected:
 	GDScriptParser::PreloadNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_path() const;
+	String get_resolved_path() const;
+	Ref<Resource> get_resource() const;
+
 	GDPreloadNode();
 	~GDPreloadNode();
 
@@ -732,6 +971,9 @@ protected:
 	GDScriptParser::ReturnNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_return_value() const;
+	bool void_return() const;
+
 	GDReturnNode();
 	~GDReturnNode();
 
@@ -746,6 +988,8 @@ protected:
 	GDScriptParser::SelfNode *node = nullptr;
 
 public:
+	Ref<GDClassNode> get_current_class() const;
+
 	GDSelfNode();
 	~GDSelfNode();
 
@@ -760,6 +1004,12 @@ protected:
 	GDScriptParser::SignalNode *node = nullptr;
 
 public:
+	Ref<GDIdentifierNode> get_identifier() const;
+	TypedArray<GDParameterNode> get_parameters() const;
+	Dictionary get_parameter_indices() const;
+	Dictionary get_method_info() const;
+	int get_usages() const;
+
 	GDSignalNode();
 	~GDSignalNode();
 
@@ -774,6 +1024,11 @@ protected:
 	GDScriptParser::SubscriptNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_base() const;
+	Ref<GDExpressionNode> get_as_index() const;
+	Ref<GDIdentifierNode> get_as_attribute() const;
+	bool is_attribute() const;
+
 	GDSubscriptNode();
 	~GDSubscriptNode();
 
@@ -788,12 +1043,61 @@ protected:
 	GDScriptParser::SuiteNode *node = nullptr;
 
 public:
+	Ref<GDSuiteLocal> get_empty() const;
+	TypedArray<GDSuiteLocal> get_locals() const;
+	Dictionary get_locals_indices() const;
+	Ref<GDFunctionNode> get_parent_function() const;
+	Ref<GDIfNode> get_parent_if() const;
+	bool has_return() const;
+	bool has_continue() const;
+	bool has_unreachable_code() const;
+	bool is_in_loop() const;
+	bool has_local(const StringName &p_name);
+	Ref<GDSuiteLocal> get_local(const StringName &p_name);
+
 	TypedArray<GDNode> get_statements() const;
 
 	GDSuiteNode();
 	~GDSuiteNode();
 
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::SuiteNode *>(p_node); }
+};
+
+class GDSuiteLocal : public RefCounted {
+	GDCLASS(GDSuiteLocal, RefCounted);
+
+public:
+	enum Type {
+		UNDEFINED,
+		CONSTANT,
+		VARIABLE,
+		PARAMETER,
+		FOR_VARIABLE,
+		PATTERN_BIND,
+	};
+
+protected:
+	static void _bind_methods();
+	const GDScriptParser::SuiteNode::Local *node = nullptr;
+
+public:
+	Type get_type() const;
+	Ref<GDConstantNode> get_as_constant() const;
+	Ref<GDVariableNode> get_as_variable() const;
+	Ref<GDParameterNode> get_as_parameter() const;
+	Ref<GDIdentifierNode> get_as_bind() const;
+	StringName get_local_name() const;
+	String get_name() const;
+	Ref<GDFunctionNode> get_source_function() const;
+	int get_start_line() const;
+	int get_start_column() const;
+	int get_end_line() const;
+	int get_end_column() const;
+	Ref<GDDataType> get_datatype() const;
+
+	GDSuiteLocal();
+	~GDSuiteLocal();
+	void set_node(const GDScriptParser::SuiteNode::Local *p_node) { node = p_node;}
 };
 
 class GDTernaryOpNode : public GDExpressionNode {
@@ -804,6 +1108,10 @@ protected:
 	GDScriptParser::TernaryOpNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_condition() const;
+	Ref<GDExpressionNode> get_true_expr() const;
+	Ref<GDExpressionNode> get_false_expr() const;
+
 	GDTernaryOpNode();
 	~GDTernaryOpNode();
 
@@ -818,6 +1126,10 @@ protected:
 	GDScriptParser::TypeNode *node = nullptr;
 
 public:
+	TypedArray<GDIdentifierNode> get_type_chain() const;
+	TypedArray<GDTypeNode> get_container_types() const;
+	Ref<GDTypeNode> get_container_type_or_null(int p_index) const;
+
 	GDTypeNode();
 	~GDTypeNode();
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::TypeNode *>(p_node); }
@@ -831,6 +1143,10 @@ protected:
 	GDScriptParser::TypeTestNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_operand() const;
+	Ref<GDTypeNode> get_test_type() const;
+	Ref<GDDataType> get_test_datatype() const;
+
 	GDTypeTestNode();
 	~GDTypeTestNode();
 
@@ -840,11 +1156,23 @@ public:
 class GDUnaryOpNode : public GDExpressionNode {
 	GDCLASS(GDUnaryOpNode, GDExpressionNode);
 
+public:
+	enum OpType {
+		OP_POSITIVE,
+		OP_NEGATIVE,
+		OP_COMPLEMENT,
+		OP_LOGIC_NOT,
+	};
+
 protected:
 	static void _bind_methods();
 	GDScriptParser::UnaryOpNode *node = nullptr;
 
 public:
+	OpType get_operation() const;
+	Variant::Operator get_variant_op() const;
+	Ref<GDExpressionNode> get_operand() const;
+
 	GDUnaryOpNode();
 	~GDUnaryOpNode();
 
@@ -854,15 +1182,32 @@ public:
 class GDVariableNode : public GDAssignableNode {
 	GDCLASS(GDVariableNode, GDAssignableNode);
 
+public:
+	enum PropertyStyle {
+		PROP_NONE,
+		PROP_INLINE,
+		PROP_SETGET,
+	};
+
 protected:
 	static void _bind_methods();
 	GDScriptParser::VariableNode *node = nullptr;
 
 public:
+	PropertyStyle get_property() const;
+	Ref<GDFunctionNode> get_setter_as_function() const;
+	Ref<GDIdentifierNode> get_setter_as_pointer() const;
+	Ref<GDIdentifierNode> get_setter_parameter() const;
+	Ref<GDFunctionNode> get_getter_as_function() const;
+	Ref<GDIdentifierNode> get_getter_as_pointer() const;
+	bool exported() const;
+	bool onready() const;
+	Dictionary get_export_info() const;
+	int get_assignments() const;
+	bool is_static() const;
+
 	GDVariableNode();
 	~GDVariableNode();
-
-	Dictionary get_export_info() const;
 
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::VariableNode *>(p_node); GDAssignableNode::set_node(p_node); }
 };
@@ -875,19 +1220,26 @@ protected:
 	GDScriptParser::WhileNode *node = nullptr;
 
 public:
+	Ref<GDExpressionNode> get_condition() const;
+	Ref<GDSuiteNode> get_loop() const;
+
 	GDWhileNode();
 	~GDWhileNode();
 
 	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::WhileNode *>(p_node); }
 };
 
-
 VARIANT_ENUM_CAST(GDNode::Type);
-
 VARIANT_ENUM_CAST(GDMember::Type);
-
 VARIANT_ENUM_CAST(GDDictionaryNode::Style);
-
 VARIANT_ENUM_CAST(GDIdentifierNode::Source);
+VARIANT_ENUM_CAST(GDDataType::Kind);
+VARIANT_ENUM_CAST(GDDataType::TypeSource);
+VARIANT_ENUM_CAST(GDAssignmentNode::Operation);
+VARIANT_ENUM_CAST(GDBinaryOpNode::OpType);
+VARIANT_ENUM_CAST(GDPatternNode::Type);
+VARIANT_ENUM_CAST(GDSuiteLocal::Type);
+VARIANT_ENUM_CAST(GDUnaryOpNode::OpType);
+VARIANT_ENUM_CAST(GDVariableNode::PropertyStyle);
 
 #endif // GDSCRIPT_EXPOSED_TREE_H

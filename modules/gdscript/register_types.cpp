@@ -158,7 +158,9 @@ void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 
 		GDREGISTER_CLASS(GDScriptErrorChecker);
 		GDREGISTER_CLASS(GDMember);
+		GDREGISTER_CLASS(GDSuiteLocal);
 		GDREGISTER_CLASS(GDNode);
+		GDREGISTER_CLASS(GDPatternPair);
 		GDREGISTER_CLASS(GDAnnotationNode);
 		GDREGISTER_CLASS(GDArrayNode);
 		GDREGISTER_CLASS(GDAssertNode);
@@ -174,6 +176,7 @@ void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(GDConstantNode);
 		GDREGISTER_CLASS(GDContinueNode);
 		GDREGISTER_CLASS(GDDictionaryNode);
+		GDREGISTER_CLASS(GDEnumValue);
 		GDREGISTER_CLASS(GDEnumNode);
 		GDREGISTER_CLASS(GDExpressionNode);
 		GDREGISTER_CLASS(GDForNode);
@@ -200,6 +203,7 @@ void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(GDUnaryOpNode);
 		GDREGISTER_CLASS(GDVariableNode);
 		GDREGISTER_CLASS(GDWhileNode);
+		GDREGISTER_CLASS(GDDataType);
 	}
 
 #ifdef TOOLS_ENABLED
