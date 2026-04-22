@@ -128,7 +128,7 @@ Error GDScriptErrorChecker::set_source(const String &p_source) {
 }
 
 Ref<GDClassNode> GDScriptErrorChecker::get_root_parse_node() const {
-	return GDNode::build_from<GDClassNode>(parser->get_tree());
+	return GDNode::build_from(parser->get_tree());
 }
 
 GDScriptErrorChecker::GDScriptErrorChecker() = default;
