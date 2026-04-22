@@ -1097,7 +1097,7 @@ public:
 
 	GDSuiteLocal();
 	~GDSuiteLocal();
-	void set_node(const GDScriptParser::SuiteNode::Local *p_node) { node = p_node;}
+	void set_node(const GDScriptParser::SuiteNode::Local *p_node) { node = p_node; }
 };
 
 class GDTernaryOpNode : public GDExpressionNode {
@@ -1209,7 +1209,10 @@ public:
 	GDVariableNode();
 	~GDVariableNode();
 
-	void set_node(GDScriptParser::Node *p_node) override { node = static_cast<GDScriptParser::VariableNode *>(p_node); GDAssignableNode::set_node(p_node); }
+	void set_node(GDScriptParser::Node *p_node) override {
+		node = static_cast<GDScriptParser::VariableNode *>(p_node);
+		GDAssignableNode::set_node(p_node);
+	}
 };
 
 class GDWhileNode : public GDNode {
@@ -1230,16 +1233,27 @@ public:
 };
 
 VARIANT_ENUM_CAST(GDNode::Type);
+
 VARIANT_ENUM_CAST(GDMember::Type);
+
 VARIANT_ENUM_CAST(GDDictionaryNode::Style);
+
 VARIANT_ENUM_CAST(GDIdentifierNode::Source);
+
 VARIANT_ENUM_CAST(GDDataType::Kind);
+
 VARIANT_ENUM_CAST(GDDataType::TypeSource);
+
 VARIANT_ENUM_CAST(GDAssignmentNode::Operation);
+
 VARIANT_ENUM_CAST(GDBinaryOpNode::OpType);
+
 VARIANT_ENUM_CAST(GDPatternNode::Type);
+
 VARIANT_ENUM_CAST(GDSuiteLocal::Type);
+
 VARIANT_ENUM_CAST(GDUnaryOpNode::OpType);
+
 VARIANT_ENUM_CAST(GDVariableNode::PropertyStyle);
 
 #endif // GDSCRIPT_EXPOSED_TREE_H
