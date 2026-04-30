@@ -766,6 +766,10 @@ void GDBinaryOpNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_left_operand"), &GDBinaryOpNode::get_left_operand);
 	ClassDB::bind_method(D_METHOD("get_right_operand"), &GDBinaryOpNode::get_right_operand);
 
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "operation", PropertyHint::PROPERTY_HINT_ENUM, "Addition,Subtraction,Multiplication,Division,Modulo,Power,Bit_left_shift,Bit_right_shift,Bit_and,Bit_or,Bit_xor,Logic_and,Logic_or,Content_test,Comp_equal,Comp_not_equal,Comp_less,Comp_less_equal,Comp_greater,Comp_greater_equal"), "", "get_operation");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "left"), "", "get_left_operand");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "right"), "", "get_right_operand");
+
 	BIND_ENUM_CONSTANT(OP_ADDITION);
 	BIND_ENUM_CONSTANT(OP_SUBTRACTION);
 	BIND_ENUM_CONSTANT(OP_MULTIPLICATION);
@@ -789,6 +793,9 @@ void GDBinaryOpNode::_bind_methods() {
 }
 
 GDBinaryOpNode::OpType GDBinaryOpNode::get_operation() const {
+	if (node == nullptr) {
+		return OP_ADDITION;
+	}
 	return static_cast<GDBinaryOpNode::OpType>(node->operation);
 }
 
@@ -797,10 +804,16 @@ Variant::Operator GDBinaryOpNode::get_variant_op() const {
 }
 
 Ref<GDExpressionNode> GDBinaryOpNode::get_left_operand() const {
+	if (node == nullptr) {
+		return nullptr;
+	}
 	return build_from(node->left_operand);
 }
 
 Ref<GDExpressionNode> GDBinaryOpNode::get_right_operand() const {
+	if (node == nullptr) {
+		return nullptr;
+	}
 	return build_from(node->right_operand);
 }
 
@@ -1360,6 +1373,8 @@ void GDIdentifierNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_source_function"), &GDIdentifierNode::get_source_function);
 	ClassDB::bind_method(D_METHOD("get_usages"), &GDIdentifierNode::get_usages);
 
+	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "name"), "", "get_name");
+
 	BIND_ENUM_CONSTANT(UNDEFINED_SOURCE);
 	BIND_ENUM_CONSTANT(FUNCTION_PARAMETER);
 	BIND_ENUM_CONSTANT(LOCAL_VARIABLE);
@@ -1377,6 +1392,9 @@ void GDIdentifierNode::_bind_methods() {
 }
 
 StringName GDIdentifierNode::get_name() const {
+	if (node == nullptr) {
+		return StringName();
+	}
 	return node->name;
 }
 
@@ -1534,9 +1552,14 @@ GDLambdaNode::~GDLambdaNode() {
 
 void GDLiteralNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_value"), &GDLiteralNode::get_value);
+
+	ADD_PROPERTY(PropertyInfo(Variant::NIL, "value"), "", "get_value");
 }
 
 Variant GDLiteralNode::get_value() const {
+	if (node == nullptr) {
+		return Variant();
+	}
 	return node->value;
 }
 
