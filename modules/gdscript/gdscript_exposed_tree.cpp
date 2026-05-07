@@ -485,6 +485,10 @@ Ref<GDDataType> GDNode::get_datatype() const {
 }
 
 Ref<GDNode> GDNode::build_from(GDScriptParser::Node *p_node) {
+	if (p_node == nullptr) {
+		return nullptr;
+	}
+
 	switch (p_node->type) {
 		case ANNOTATION:
 			return GDNode::build_from<GDAnnotationNode>(p_node);
@@ -493,7 +497,7 @@ Ref<GDNode> GDNode::build_from(GDScriptParser::Node *p_node) {
 		case ASSERT:
 			return GDNode::build_from<GDAssertNode>(p_node);
 		case ASSIGNMENT:
-			return GDNode::build_from<GDAssignableNode>(p_node);
+			return GDNode::build_from<GDAssignmentNode>(p_node);
 		case AWAIT:
 			return GDNode::build_from<GDAwaitNode>(p_node);
 		case BINARY_OPERATOR:
