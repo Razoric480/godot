@@ -392,6 +392,8 @@ void GDNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_annotations"), &GDNode::get_annotations);
 	ClassDB::bind_method(D_METHOD("get_datatype"), &GDNode::get_datatype);
 
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "type", PROPERTY_HINT_ENUM, "None,Annotation,Array,Assert,Assignment,Await,Binary_operator,Break,Breakpoint,Call,Cast,Class,Constant,Continue,Dictionary,Enum,For,Function,Get_node,Identifier,If,Lambda,Literal,Match,Match_branch,Parameter,Pass,Pattern,Preload,Return,Self,Signal,Subscript,Suite,Ternary_operator,Type,Type_test,Unary_operator,Variable,While"), "", "get_type");
+
 	BIND_ENUM_CONSTANT(NONE);
 	BIND_ENUM_CONSTANT(ANNOTATION);
 	BIND_ENUM_CONSTANT(ARRAY);
@@ -442,6 +444,9 @@ Ref<T> GDNode::build_from(GDScriptParser::Node *p_node) {
 }
 
 GDNode::Type GDNode::get_type() const {
+	if (node == nullptr) {
+		return NONE;
+	}
 	return static_cast<GDNode::Type>(node->type);
 }
 
@@ -712,6 +717,10 @@ void GDAssignmentNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_assigned_value"), &GDAssignmentNode::get_assigned_value);
 	ClassDB::bind_method(D_METHOD("use_conversion_assign"), &GDAssignmentNode::use_conversion_assign);
 
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "operation", PROPERTY_HINT_ENUM, "Op_none,Op_addition,Op_subtraction,Op_multiplication,Op_division,Op_modulo,Op_power,Op_bit_shift_left,Op_bit_shift_right,Op_bit_and,Op_bit_or,Op_bit_xor"), "", "get_operation");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "assignee"), "", "get_assignee");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "assigned_value"), "", "get_assigned_value");
+
 	BIND_ENUM_CONSTANT(OP_NONE);
 	BIND_ENUM_CONSTANT(OP_ADDITION);
 	BIND_ENUM_CONSTANT(OP_SUBTRACTION);
@@ -727,6 +736,9 @@ void GDAssignmentNode::_bind_methods() {
 }
 
 GDAssignmentNode::Operation GDAssignmentNode::get_operation() const {
+	if (node == nullptr) {
+		return OP_NONE;
+	}
 	return static_cast<GDAssignmentNode::Operation>(node->operation);
 }
 
@@ -735,6 +747,9 @@ Variant::Operator GDAssignmentNode::get_variant_op() const {
 }
 
 Ref<GDExpressionNode> GDAssignmentNode::get_assignee() const {
+	if (node == nullptr) {
+		return nullptr;
+	}
 	return build_from(node->assignee);
 }
 
@@ -748,6 +763,9 @@ GDAssignmentNode::~GDAssignmentNode() {
 }
 
 Ref<GDExpressionNode> GDAssignmentNode::get_assigned_value() const {
+	if (node == nullptr) {
+		return nullptr;
+	}
 	return build_from(node->assigned_value);
 }
 
